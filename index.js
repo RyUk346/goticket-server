@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const { connectDB } = require("./config/db");
+const ticketsRoutes = require("./routes/tickets");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,12 +13,10 @@ const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 app.use(cors({ origin: [CLIENT_URL, "http://localhost:3000"], credentials: true }));
 app.use(express.json());
 
-// Health check (no DB needed)
 app.get("/", (req, res) => {
   res.send({ service: "GoTicket API", status: "running" });
 });
 
-// Ensure a DB connection for every /api request (cached after the first call)
 app.use(async (req, res, next) => {
   try {
     await connectDB();
@@ -27,5 +26,6 @@ app.use(async (req, res, next) => {
     res.status(500).send({ message: "Database connection failed" });
   }
 });
+app.use(ticketsRoutes); 
 
 app.listen(PORT, () => console.log(`GoTicket server running on port ${PORT}`));
