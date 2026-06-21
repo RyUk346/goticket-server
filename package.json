@@ -1,0 +1,13 @@
+{
+  "name": "goticket-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "mongodb": "^7.3.0"
+  }
+}
