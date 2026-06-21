@@ -6,6 +6,7 @@ dotenv.config();
 const { connectDB } = require("./config/db");
 const ticketsRoutes = require("./routes/tickets");
 const usersRoutes = require("./routes/users");
+const bookingsRoutes = require("./routes/bookings");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,5 +30,6 @@ app.use(async (req, res, next) => {
 });
 app.use(ticketsRoutes); 
 app.use(usersRoutes);
+app.use(bookingsRoutes);
 
 app.listen(PORT, () => console.log(`GoTicket server running on port ${PORT}`));
