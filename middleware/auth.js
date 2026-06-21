@@ -35,4 +35,28 @@ async function verifyToken(req, res, next) {
   }
 }
 
-module.exports = { verifyToken };
+// Reads the *current* role from the DB (the token role can be stale after a change).
+const requireRole = (...roles) => async (req, res, next) => {
+  try {
+    const { users } = collections();
+    const dbUser = await users.findOne({ email: req.user.email });
+    if (!dbUser || !roles.includes(dbUser.role)) {
+      return res.status(403).send({ message: "Forbidden: insufficient role" });
+    }
+    req.dbUser = dbUser;
+    next();
+  } catch {
+    return res.status(500).send({ message: "Role check failed" });
+  }
+};
+
+// Allows access when the :email param is the requester, or they are an admin.
+const sameUserOrAdmin = () => async (req, res, next) => {
+  if (req.params.email === req.user.email) return next();
+  const { users } = collections();
+  const dbUser = await users.findOne({ email: req.user.email });
+  if (dbUser?.role === "admin") return next();
+  return res.status(403).send({ message: "Forbidden" });
+};
+
+module.exports = { verifyToken, requireRole, sameUserOrAdmin };
