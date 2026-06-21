@@ -4,6 +4,7 @@ const { collections } = require("../config/db");
 const { verifyToken, requireRole } = require("../middleware/auth");
 
 const vendorOnly = requireRole("vendor");
+const adminOnly = requireRole("admin");
 
 router.get("/api/tickets", async (req, res) => {
   const { tickets } = collections();
@@ -83,6 +84,37 @@ router.get("/api/tickets/vendor/:email", verifyToken, vendorOnly, async (req, re
   const { tickets } = collections();
   const data = await tickets.find({ vendorEmail: req.params.email }).sort({ createdAt: -1 }).toArray();
   res.send(data);
+});
+
+router.get("/api/admin/tickets", verifyToken, adminOnly, async (req, res) => {
+  const { tickets } = collections();
+  const data = await tickets.find({}).sort({ createdAt: -1 }).toArray();
+  res.send(data);
+});
+
+router.patch("/api/tickets/approve/:id", verifyToken, adminOnly, async (req, res) => {
+  const { tickets } = collections();
+  const result = await tickets.updateOne({ _id: new ObjectId(req.params.id) }, { $set: { status: "approved" } });
+  res.send(result);
+});
+
+router.patch("/api/tickets/reject/:id", verifyToken, adminOnly, async (req, res) => {
+  const { tickets } = collections();
+  const result = await tickets.updateOne({ _id: new ObjectId(req.params.id) }, { $set: { status: "rejected", isAdvertised: false } });
+  res.send(result);
+});
+
+router.patch("/api/tickets/advertise/:id", verifyToken, adminOnly, async (req, res) => {
+  const { tickets } = collections();
+  const ticket = await tickets.findOne({ _id: new ObjectId(req.params.id) });
+  if (!ticket) return res.status(404).send({ message: "Ticket not found" });
+  if (ticket.status !== "approved") return res.status(400).send({ message: "Only approved tickets can be advertised" });
+  if (!ticket.isAdvertised) {
+    const count = await tickets.countDocuments({ isAdvertised: true });
+    if (count >= 6) return res.status(400).send({ message: "You cannot advertise more than 6 tickets" });
+  }
+  const result = await tickets.updateOne({ _id: ticket._id }, { $set: { isAdvertised: !ticket.isAdvertised } });
+  res.send({ ...result, isAdvertised: !ticket.isAdvertised });
 });
 
 router.patch("/api/tickets/:id", verifyToken, vendorOnly, async (req, res) => {
