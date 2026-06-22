@@ -8,6 +8,7 @@ const ticketsRoutes = require("./routes/tickets");
 const usersRoutes = require("./routes/users");
 const bookingsRoutes = require("./routes/bookings");
 const paymentsRoutes = require("./routes/payments");
+const vendorRoutes = require("./routes/vendor");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,9 +30,20 @@ app.use(async (req, res, next) => {
     res.status(500).send({ message: "Database connection failed" });
   }
 });
-app.use(ticketsRoutes); 
+
+app.use(ticketsRoutes);
 app.use(usersRoutes);
 app.use(bookingsRoutes);
 app.use(paymentsRoutes);
+app.use(vendorRoutes);
+
+app.use((req, res) => res.status(404).send({ message: "Route not found" }));
+
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).send({ message: "Internal server error" });
+});
 
 app.listen(PORT, () => console.log(`GoTicket server running on port ${PORT}`));
+
+module.exports = app;
