@@ -1,6 +1,5 @@
 const dns = require("node:dns");
-// Helps MongoDB Atlas SRV records resolve on networks/hosts whose default
-// resolver blocks SRV lookups. Harmless for a local mongodb:// URI.
+
 try {
   dns.setServers(["8.8.8.8", "8.8.4.4"]);
   dns.setDefaultResultOrder("ipv4first");
@@ -27,11 +26,10 @@ function getDB() {
   return db;
 }
 
-// Convenience accessor for every collection we use.
 function collections() {
   const d = getDB();
   return {
-    users: d.collection("user"), // managed by BetterAuth from the client
+    users: d.collection("user"), 
     tickets: d.collection("tickets"),
     bookings: d.collection("bookings"),
     payments: d.collection("payments"),
